@@ -4,12 +4,38 @@ import random
 random.seed(0)
 
 
+def print_list(l, c=None, should_print=True):
+    output = ""
+    for i in l:
+        if should_print:
+            print i
+        output += str(i)+"\n"
+        if c:
+            c -= 1
+            if not c:
+                break
+    return output
+
+
+def print_dict(d, c=None, should_print=True):
+    output = ""
+    for k,v in d.items():
+        if should_print:
+            print k,v
+        output += str(k)+": "+str(v)+"\n"
+        if c:
+            c -= 1
+            if not c:
+                break
+    return output
+
+
 def load_data(file_name):
     file = open(file_name)
     data = file.read()
     file.close()
     output = []
-    i=0
+    i = 0
     for line in data.split("\n"):
         tokens = line.split("\t")
         i += 1
@@ -20,12 +46,14 @@ def load_data(file_name):
         })
     return output
 
+
 def distance(a1, a2):
     a1, a2, l = list(a1['attributes']), list(a2['attributes']), len(a1['attributes'])
     p = 2
     return pow(reduce(lambda x, y: x+y, map(lambda i: pow(abs(a1[i]-a2[i]), p), xrange(l))), (1/p))
 
 
-# def split(a, n):
-#     k, m = len(a) / n, len(a) % n
-#     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in xrange(n))
+def split(a, n):
+    k, m = int(len(a) / n), len(a) % n
+    r = (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in xrange(n))
+    return r
