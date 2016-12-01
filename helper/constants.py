@@ -1,0 +1,2 @@
+CATEGORICAL = "CATEGORICAL"
+EMPTY_DATASET = "Empty dataset"

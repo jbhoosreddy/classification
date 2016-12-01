@@ -1,4 +1,5 @@
 import numpy as np
+from constants import *
 
 
 def mean(l):
@@ -11,3 +12,10 @@ def median(l):
 
 def mode(l):
     return max(set(l), key=l.count)
+
+
+def infer_nature(l):
+    if not len(l):
+        raise Exception(EMPTY_DATASET)
+    if isinstance(l[0], str):
+        return CATEGORICAL

@@ -30,17 +30,26 @@ def print_dict(d, c=None, should_print=True):
     return output
 
 
-def load_data(file_name):
+def load_data(file_name, map_to_int=False):
+
+    def mapper(x):
+        if not map_to_int:
+            return x
+        if x not in array:
+            array.append(x)
+        return array.index(x)
+
     file = open(file_name)
     data = file.read()
     file.close()
     output = []
     i = 0
+    array = list()
     for line in data.split("\n"):
         tokens = line.split("\t")
         i += 1
         output.append({
-            'attributes': map(lambda x: float(x), tokens[:-1]),
+            'attributes': map(lambda x: float(x) if is_type(float, x) else mapper(x), tokens[:-1]),
             'class': tokens[-1],
             'id': i
         })
@@ -57,3 +66,11 @@ def split(a, n):
     k, m = int(len(a) / n), len(a) % n
     r = (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in xrange(n))
     return r
+
+
+def is_type(type, s):
+    try:
+        type(s)
+        return True
+    except ValueError:
+        return False

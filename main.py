@@ -1,8 +1,8 @@
-from helper.utils import split
+from helper.utils import split, load_data
 from KNearestNeighbour import *
 from DecisionTree import *
 
-METHOD = "DT"
+METHOD = "KNN"
 N = 10
 K = 8
 
@@ -35,7 +35,7 @@ def main(data, method, n, **kwargs):
                 count += 1
         print count, len(test)-count
 
-filename = 'project3_dataset1'
-data = load_data('data/' + filename + '.txt')
+filename = 'project3_dataset2'
+data = load_data('data/' + filename + '.txt',  map_to_int=True)
 main(data=data, method=METHOD, n=N, K=K)
 

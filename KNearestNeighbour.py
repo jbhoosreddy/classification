@@ -1,4 +1,4 @@
-from helper.utils import load_data, distance
+from helper.utils import distance
 import heapq
 
 
@@ -36,3 +36,7 @@ class KNN(object):
             else:
                 tt['assigned'] = '1'
         return test
+
+    def fit_transform(self, train, test):
+        self.fit(train)
+        return self.transform(test)
