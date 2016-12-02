@@ -1,4 +1,5 @@
 from helper.utils import distance
+from helper.constants import *
 import heapq
 
 
@@ -12,6 +13,9 @@ class KNN(object):
         self.model = train
 
     def transform(self, test):
+        model = self.model
+        if model is None:
+            raise Exception(MODEL_NOT_TRAINED_ERROR)
         K = self.K
         model = self.model
         for tt in test:

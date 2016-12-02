@@ -4,6 +4,10 @@ import random
 random.seed(0)
 
 
+def print_proxy(l):
+    print l
+
+
 def print_list(l, c=None, should_print=True):
     output = ""
     for i in l:

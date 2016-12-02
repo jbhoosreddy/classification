@@ -1,8 +1,9 @@
 from helper.utils import split, load_data
 from KNearestNeighbour import *
 from DecisionTree import *
+from NaiveBayes import *
 
-METHOD = "KNN"
+METHOD = "NB"
 N = 10
 K = 8
 
@@ -12,6 +13,8 @@ def main(data, method, n, **kwargs):
         model = DecisionTree()
     elif method == "KNN":
         model = KNN(kwargs['K'])
+    elif method == "NB":
+        model = NaiveBayes()
     partitions = list(split(data, n))
 
     for i in range(n):
@@ -26,8 +29,7 @@ def main(data, method, n, **kwargs):
         for j in range(i+1, n):
             train += partitions[j]
 
-        model.fit(train)
-        result = model.transform(test)
+        result = model.fit_transform(train, test)
 
         count = 0
         for res in result:
@@ -35,7 +37,7 @@ def main(data, method, n, **kwargs):
                 count += 1
         print count, len(test)-count
 
-filename = 'project3_dataset2'
-data = load_data('data/' + filename + '.txt',  map_to_int=True)
+filename = 'project3_dataset1'
+data = load_data('data/' + filename + '.txt',  map_to_int=False)
 main(data=data, method=METHOD, n=N, K=K)
 

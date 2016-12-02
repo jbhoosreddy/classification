@@ -3,7 +3,7 @@ from constants import *
 
 
 def mean(l):
-    return sum(l)/len(l)
+    return np.mean(np.array(l))
 
 
 def median(l):
@@ -12,6 +12,10 @@ def median(l):
 
 def mode(l):
     return max(set(l), key=l.count)
+
+
+def std(l):
+    return np.std(np.array(l))
 
 
 def infer_nature(l):

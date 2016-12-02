@@ -76,7 +76,7 @@ class DecisionTree(object):
     def transform(self, test):
         model = self.model
         if model is None:
-            raise Exception("You need to train your model first. Call fit method with training data.")
+            raise Exception(MODEL_NOT_TRAINED_ERROR)
 
         for t in test:
             x = t['attributes']
