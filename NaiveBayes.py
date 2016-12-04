@@ -20,7 +20,10 @@ class NaiveBayes(object):
         _std_ = std(l)
         i = 0
         while True:
-            low = round(_min_ + i * _std_, 3)
+            if i == 0:
+                low = _min_
+            else:
+                low = round(_min_ + i * _std_, 3)
             high = round(_min_ + (i + 1) * _std_, 3)
             interval = low, high
             l = map(lambda e: interval if low <= e < high else e, l)
@@ -41,10 +44,11 @@ class NaiveBayes(object):
         for label in labels:
             indices = filter(lambda a: a is not None, map(lambda (i, v): i if v == label else None, enumerate(y)))
             total = len(indices)
+            posterior[label] = list()
             for i in xrange(self.shape[1]):
-                x = map(lambda (i, v): v, filter(lambda (j, e): j in indices, enumerate(X[i])))
+                x = map(lambda (k, v): v, filter(lambda (j, e): j in indices, enumerate(X[i])))
                 counts = Counter(x)
-                posterior[label] = {key: (1+counts[key])/total for key in counts.keys()}
+                posterior[label].append({key: (1+counts[key])/total for key in counts.keys()})
         self.model = {'labels': labels, 'posterior': posterior, 'prior': prior}
 
     def transform(self, test):
@@ -57,12 +61,15 @@ class NaiveBayes(object):
             expectation = dict()
             for label in model['labels']:
                 for i, e in enumerate(x):
-                    probability = filter(lambda (k, v): k[0] <= e < k[1], model['posterior'][label].items())
+                    probability = filter(lambda (k, v): k[0] <= e < k[1], model['posterior'][label][i].items())
                     if len(probability) == 1:
                         probability = probability[0][1]
                     else:
                         probability = 1/(model['prior'][label]*self.shape[0])
-                    expectation[label] = probability * model['prior'][label]
+                    if label not in expectation.keys():
+                        expectation[label] = 1
+                    expectation[label] = expectation[label] * probability
+                    expectation[label] = expectation[label] * model['prior'][label]
             t['assigned'] = sorted(expectation, key=expectation.get, reverse=True)[0]
         return test
 
