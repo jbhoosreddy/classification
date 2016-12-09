@@ -1,5 +1,10 @@
 from __future__ import division
+from statistics import infer_nature, std
+from constants import *
 import random
+
+__all__ = ['print_proxy', 'print_list', 'print_dict', 'load_data', 'distance', 'split', 'is_type', 'categorize',
+           'most_common', 'normalize']
 
 random.seed(0)
 
@@ -63,12 +68,12 @@ def load_data(file_name, map_to_int=False):
 def distance(a1, a2):
     a1, a2, l = list(a1['attributes']), list(a2['attributes']), len(a1['attributes'])
     p = 2
-    return pow(reduce(lambda x, y: x+y, map(lambda i: pow(abs(a1[i]-a2[i]), p), xrange(l))), (1/p))
+    return pow(reduce(lambda x, y: x+y, map(lambda i: pow(abs(a1[i]-a2[i]), p), range(l))), (1/p))
 
 
 def split(a, n):
     k, m = int(len(a) / n), len(a) % n
-    r = (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in xrange(n))
+    r = (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
     return r
 
 
@@ -78,3 +83,33 @@ def is_type(type, s):
         return True
     except ValueError:
         return False
+
+
+def categorize(l, expansion_factor=1):
+    if infer_nature(l) == CATEGORICAL:
+        return l
+    _min_ = min(l)
+    _max_ = max(l)
+    _std_ = std(l)
+    i = 0
+    while True:
+        if i == 0:
+            low = _min_
+        else:
+            low = round(_min_ + i * expansion_factor * _std_, 3)
+        high = round(_min_ + (i + 1) * expansion_factor * _std_, 3)
+        interval = low, high
+        l = map(lambda e: interval if low <= e < high else e, l)
+        i += 1
+        if high > _max_:
+            break
+    return l
+
+
+def most_common(lst):
+    return max(set(lst), key=lst.count)
+
+
+def normalize(lst, m=None):
+    m = max(lst) if m is None else m
+    return map(lambda l: l/m, lst), m

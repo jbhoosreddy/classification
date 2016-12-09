@@ -1,8 +1,10 @@
 from __future__ import division
 from helper.constants import *
+from helper.utils import categorize
 from helper.statistics import std, infer_nature
 from collections import Counter
 
+__all__ = ['NaiveBayes']
 
 class NaiveBayes(object):
 
@@ -12,26 +14,6 @@ class NaiveBayes(object):
         self.model = None
         self.labels = None
 
-    def mapper(self, l):
-        if infer_nature(l) == CATEGORICAL:
-            return l
-        _min_ = min(l)
-        _max_ = max(l)
-        _std_ = std(l)
-        i = 0
-        while True:
-            if i == 0:
-                low = _min_
-            else:
-                low = round(_min_ + i * _std_, 3)
-            high = round(_min_ + (i + 1) * _std_, 3)
-            interval = low, high
-            l = map(lambda e: interval if low <= e < high else e, l)
-            i += 1
-            if high > _max_:
-                break
-        return l
-
     def fit(self, train):
         X = map(lambda t: t['attributes'], train)
         y = map(lambda t: t['class'], train)
@@ -39,13 +21,13 @@ class NaiveBayes(object):
         prior = Counter(y)
         prior = {key: prior[key]/self.shape[0] for key in prior.keys()}
         labels = set(y)
-        X = map(lambda i: self.mapper(map(lambda x: x[i], X)), xrange(self.shape[1]))
+        X = map(lambda i: categorize(map(lambda x: x[i], X)), range(self.shape[1]))
         posterior = dict()
         for label in labels:
             indices = filter(lambda a: a is not None, map(lambda (i, v): i if v == label else None, enumerate(y)))
             total = len(indices)
             posterior[label] = list()
-            for i in xrange(self.shape[1]):
+            for i in range(self.shape[1]):
                 x = map(lambda (k, v): v, filter(lambda (j, e): j in indices, enumerate(X[i])))
                 counts = Counter(x)
                 posterior[label].append({key: (1+counts[key])/total for key in counts.keys()})
@@ -61,7 +43,7 @@ class NaiveBayes(object):
             expectation = dict()
             for label in model['labels']:
                 for i, e in enumerate(x):
-                    probability = filter(lambda (k, v): k[0] <= e < k[1], model['posterior'][label][i].items())
+                    probability = filter(lambda (k, v): k[0] <= e < k[1] if isinstance(k, tuple) else k == e, model['posterior'][label][i].items())
                     if len(probability) == 1:
                         probability = probability[0][1]
                     else:

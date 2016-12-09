@@ -1,101 +1,121 @@
 from __future__ import division
 from helper.statistics import *
 from helper.constants import *
+from helper.utils import categorize
+from helper.collections import DecisionTreeNode
+from helper.collections import Tree
 from collections import Counter
-from copy import deepcopy
+
+__all__ = ['DecisionTree']
 
 
 class DecisionTree(object):
 
     def __init__(self):
-        self.length = None
+        self.shape = None
         self.model = None
         self.dominant_label = None
+        self.tree = Tree(DecisionTreeNode)
 
     def fit(self, train):
-        prune_set = set()
-        central_type = 'median'
-
+        def clean(v):
+            del v['entropy']
+            del v['total']
+            del v['data']
+        tree = self.tree
         y = map(lambda t: t['class'], train)
+        prior = Counter(y)
+        self.dominant_label = prior.most_common(1)[0][0]
         labels = set(y)
-        X = map(lambda t: t['attributes'], train)
-        length = len(X[0])
-        self.length = length
-        model = list()
-        for i in xrange(length):
-            nature = infer_nature(map(lambda t: t['attributes'][i], train))
-            if nature == CATEGORICAL:
-                filtered_train = map(lambda (i, v): v, filter(lambda (j, v): j not in prune_set, enumerate(train)))
-            else:
-                filtered_train = train
-            model.append([])
+        self.shape = len(y), len(train[0]['attributes'])
+        node_entropy = entropy([prior[label]/self.shape[0] for label in labels])
+        filtered_train = map(lambda x: x, train)
+        seen_attributes = list()
+        new_range = None
+        entropy_value = gain_value = None
+        while True:
             features = dict()
-            dominant_size = -1
-            for label in labels:
-                filtered = filter(lambda t: t['class'] == label, filtered_train)
-                x = map(lambda t: t['attributes'][i], filtered)
-                size = len(filtered)
-                if size > dominant_size:
-                    dominant_size = size
-                    dominant_label = label
-                if nature == CATEGORICAL:
-                    levels = set(x)
-                    for level in levels:
-                        count = Counter(map(lambda f: f['class'], filter(lambda f: f['attributes'][i] == level, filtered_train)))
-                        if len(count) == 1:
-                            model[-1].append({'label': count.most_common(1)[0][0], 'threshold': level, 'region': "="})
+            entropy_dict = dict()
+            gain_dict = dict()
+            max_gain = 0
+            selected_attribute = -1
+            X = map(lambda t: t['attributes'], filtered_train)
+            X = map(lambda i: categorize(map(lambda x: x[i], X)), range(self.shape[1]))
+            for i in range(self.shape[1]):
+                if i in seen_attributes:
+                    continue
+                features[i] = dict()
+                values = set(X[i])
+                for value in values:
+                    node_filtered_train = filter(lambda t: value[0] <= t['attributes'][i] < value[1], filtered_train)
+                    features[i][value] = Counter(map(lambda tt: tt['class'], node_filtered_train))
+                    features[i][value]['total'] = sum(features[i][value].values())
+                    features[i][value]['data'] = node_filtered_train
+                    features[i][value]['entropy'] = features[i][value]['total'] / self.shape[0] * entropy([features[i][value][label]/features[i][value]['total'] for label in labels])
+                entropy_dict[i] = sum([c['entropy'] for c in features[i].values()])
+                gain_dict[i] = node_entropy - entropy_dict[i]
+                if gain_dict[i] > max_gain:
+                    max_gain = gain_dict[i]
+                    selected_attribute = i
+            if new_range is None:
+                min_value = min(map(lambda x: x[0], set(X[selected_attribute])))
+                max_value = max(map(lambda x: x[1], set(X[selected_attribute])))
+                new_range = min_value, max_value
+            if entropy_value is None:
+                entropy_value = entropy_dict[selected_attribute]
+                gain_value = gain_dict[selected_attribute]
+            seen_attributes.append(selected_attribute)
+            if selected_attribute == -1:
+                break
+            node_value = {'id': selected_attribute,
+                          'gain': gain_value,
+                          'entropy': entropy_value,
+                          'size': len(filtered_train),
+                          'data': filtered_train,
+                          'range': new_range}
+            tree.insert(node_value, map(lambda (k, v): {'range': k, 'entropy': v['entropy'], 'gain': v['gain'], 'count': v, 'seen': list(seen_attributes), 'size': v['total'], 'data': v['data']}, features[selected_attribute].items()))
+            map(lambda (k, v): clean(v), features[selected_attribute].items())
+            while True:
+                current_tree_node, parent_tree_node = tree.get_current(tree.root)
+                if current_tree_node is None:
+                    break
+                if len(current_tree_node['seen']) < self.shape[1]:
+                    break
                 else:
-                    features[label] = {'size': len(filtered), 'min': min(x), 'max': max(x),
-                                       'mean': mean(x), 'median': median(x), 'mode': mode(x)}
-            self.dominant_label = dominant_label
-
-            if nature != CATEGORICAL:
-                centrals = map(lambda v: v[central_type], features.values())
-                for label in labels:
-                    other_features = deepcopy(features)
-                    del other_features[label]
-                    mins = map(lambda v: v['min'], other_features.values())
-                    maxs = map(lambda v: v['max'], other_features.values())
-                    if features[label][central_type] == max(centrals):
-                        current_min = features[label]['min']
-                        other_max = max(maxs)
-                        if other_max > current_min:
-                            model[-1].append({'threshold': other_max, 'label': label, 'region': '>'})
-                        else:
-                            model[-1].append({'threshold': current_min, 'label': label, 'region': '>'})
-                    elif features[label][central_type] == min(centrals):
-                        current_max = features[label]['max']
-                        other_min = min(mins)
-                        if other_min < current_max:
-                            model[-1].append({'threshold': other_min, 'label': label, 'region': '<'})
-                        else:
-                            model[-1].append({'threshold': current_max, 'label': label, 'region': '<'})
-                prune_set |= self.prune(x, model[-1])
-        self.model = model
+                    current_tree_node.leaf_node = True
+                    current_tree_node['label'] = current_tree_node['count'].most_common(1)[0][0]
+            if current_tree_node is None:
+                break
+            new_range = current_tree_node['range']
+            entropy_value = current_tree_node['entropy']
+            gain_value = current_tree_node['gain']
+            seen_attributes = current_tree_node['seen']
+            selected_attribute = seen_attributes[-1]
+            filtered_train = filter(lambda t: new_range[0] <= t['attributes'][selected_attribute] < new_range[1], current_tree_node['data'])
+        tree.finalize_tree()
+        tree.clean(['data', 'gain', 'count', 'size'])
+        print tree
 
     def transform(self, test):
-        model = self.model
-        if model is None:
+        tree = self.tree
+        if tree is None:
             raise Exception(MODEL_NOT_TRAINED_ERROR)
 
-        for t in test:
+        for i, t in enumerate(test):
             x = t['attributes']
-            for i in xrange(self.length):
-                break_it = False
-                value = x[i]
-                nature = infer_nature([value])
-                if nature == CATEGORICAL:
-                    for m in model[i]:
-                        if m['threshold'] == value:
-                            t['assigned'] = m['label']
-                            break_it = True
-                else:
-                    for m in model[i]:
-                        if m['region'] == '<' and value < m['threshold'] or m['region'] == '>' and value > m['threshold']:
-                            t['assigned'] = m['label']
-                            break_it = True
-                if break_it:
+            current_node = tree.root
+            while True:
+                current_id = current_node['id']
+                val = x[current_id]
+                new_child = filter(lambda child: child['range'][0] <= val < child['range'][1],  current_node.children)
+                if len(new_child) == 0:
                     break
+                else:
+                    new_child = new_child[0]
+                if 'label' in new_child.value.keys():
+                    t['assigned'] = new_child['label']
+                    break
+                current_node = new_child
             if 'assigned' not in t.keys():
                 t['assigned'] = self.dominant_label
         return test
@@ -104,10 +124,16 @@ class DecisionTree(object):
         self.fit(train)
         return self.transform(test)
 
-    def prune(self, x, model):
-        prune_list = list()
-        for i,v in enumerate(x):
-            for m in model:
-                if m['region'] == '<' and v < m['threshold'] or m['region'] == '>' and v > m['threshold']:
-                    prune_list.append(i)
-        return set(prune_list)
+
+def finalize_tree(self, node=None):
+    if node is None:
+        node = self.root
+    if node['entropy'] == 0:
+        node.leaf_node = True
+    if 'count' in node.value.keys():
+        count = node['count']
+        if len(count) == 1:
+            node['label'] = count.keys()[0]
+    for child in node.children:
+        self.finalize_tree(child)
+Tree.finalize_tree = finalize_tree

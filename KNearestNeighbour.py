@@ -1,6 +1,8 @@
-from helper.utils import distance
+from helper.utils import distance, normalize
 from helper.constants import *
 import heapq
+
+__all__ = ['KNN']
 
 
 class KNN(object):
@@ -8,16 +10,29 @@ class KNN(object):
     def __init__(self, K):
         self.model = None
         self.K = K
+        self.normalization_factor = None
+
+    def __mapper__(self, data):
+        X = map(lambda d: d['attributes'], data)
+        if self.normalization_factor is None:
+            X = map(lambda i: normalize(map(lambda x: x[i], X)), range(len(X[0])))
+            self.normalization_factor = map(lambda (a, b): b,  X)
+        else:
+            X = map(lambda i: normalize(map(lambda x: x[i], X), self.normalization_factor[i]), range(len(X[0])))
+        X = map(lambda (a, b): a,  X)
+        for i, d in enumerate(data):
+            d['attributes'] = map(lambda j: X[j][i], xrange(len(X)))
+        return data
 
     def fit(self, train):
-        self.model = train
+        self.model = self.__mapper__(train)
 
     def transform(self, test):
+        test = self.__mapper__(test)
         model = self.model
         if model is None:
             raise Exception(MODEL_NOT_TRAINED_ERROR)
         K = self.K
-        model = self.model
         for tt in test:
             heap = dict()
             for tr in model:

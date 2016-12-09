@@ -1,18 +1,22 @@
 from __future__ import division
 
+
 class Performance(object):
 
     def __init__(self, actual, predicted):
+        pos, neg = '0', '1'
+        self.actual = actual
+        self.predicted = predicted
         tp = tn = fp = fn = 0
         self.total = len(actual)
         for i in xrange(self.total):
-            if actual[i] == predicted[i] == '1':
+            if actual[i] == predicted[i] == pos:
                 tp += 1
-            elif actual[i] == predicted[i] == '0':
+            elif actual[i] == predicted[i] == neg:
                 tn += 1
-            elif actual[i] == '1' and predicted[i] == '0':
+            elif actual[i] == pos and predicted[i] == neg:
                 fn += 1
-            elif actual[i] == '0' and predicted[i] == '1':
+            elif actual[i] == neg and predicted[i] == pos:
                 fp += 1
         self.tp = tp
         self.tn = tn
