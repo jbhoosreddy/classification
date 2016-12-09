@@ -1,7 +1,7 @@
 from __future__ import division
 from helper.statistics import *
 from helper.constants import *
-from helper.utils import categorize
+from helper.utils import categorize, generalization_error
 from helper.structures import DecisionTreeNode
 from helper.structures import Tree
 from collections import Counter
@@ -11,11 +11,12 @@ __all__ = ['DecisionTree']
 
 class DecisionTree(object):
 
-    def __init__(self):
+    def __init__(self, RENDER_TREE=False, prune=True):
         self.shape = None
         self.model = None
         self.dominant_label = None
         self.tree = Tree(DecisionTreeNode)
+        self.render_tree = RENDER_TREE
 
     def fit(self, train):
         def clean(v):
@@ -94,9 +95,10 @@ class DecisionTree(object):
             seen_attributes = current_tree_node['seen']
             selected_attribute = seen_attributes[-1]
             filtered_train = filter(lambda t: new_range[0] <= t['attributes'][selected_attribute] < new_range[1] if isinstance(new_range, tuple) else t['attributes'][selected_attribute] == new_range, current_tree_node['data'])
-        tree.finalize_tree()
+        tree.prune_tree()
         tree.clean(['data', 'gain', 'count', 'size'])
-        print tree
+        if self.render_tree:
+            print tree
 
     def transform(self, test):
         tree = self.tree
@@ -127,15 +129,16 @@ class DecisionTree(object):
         return self.transform(test)
 
 
-def finalize_tree(self, node=None):
+def prune_tree(self, node=None):
     if node is None:
         node = self.root
     if node['entropy'] == 0:
         node.leaf_node = True
     if 'count' in node.value.keys():
-        count = node['count']
-        if len(count) == 1:
-            node['label'] = count.keys()[0]
+        error = generalization_error(node)
+        if len(error) == 1:
+            node['label'] = error.keys()[0]
     for child in node.children:
-        self.finalize_tree(child)
-Tree.finalize_tree = finalize_tree
+        self.prune_tree(child)
+
+Tree.prune_tree = prune_tree

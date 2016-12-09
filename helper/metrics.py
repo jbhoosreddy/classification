@@ -48,6 +48,8 @@ class Performance(object):
     def f1(self):
         recall = self.recall()
         precision = self.precision()
+        if recall == precision == 0:
+            return 100
         return 2 * recall * precision / (recall + precision)
 
     def __render__(self, value):

@@ -100,7 +100,6 @@ class Tree(object):
             node.leaf_node = True
         return new_current, parent
 
-
     def clean(self, keys, node=None):
         def __cleaner__(o, k):
             del o[k]

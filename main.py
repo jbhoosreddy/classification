@@ -9,12 +9,13 @@ from DecisionTree import *
 from Boost import *
 range = xrange
 
-METHOD = "BST"
+METHOD = "DT"
 P = 10
 N = 10
 K = 8
 M = 2
 T = 5
+RENDER_TREE = True
 
 
 def main(data, method, P, **kwargs):
@@ -23,7 +24,7 @@ def main(data, method, P, **kwargs):
     metrics = list()
     for i in range(P):
         if method == "DT":
-            model = DecisionTree()
+            model = DecisionTree(kwargs['RENDER_TREE'])
         elif method == "RF":
             model = RandomForest(kwargs['T'], kwargs['M'], kwargs['bagging'])
         elif method == "KNN":
@@ -48,6 +49,7 @@ def main(data, method, P, **kwargs):
 
         metrics.append(Performance(actual, predicted))
         print metrics[-1]
+        print
 
     if not P == 1:
         print '-----------------------------'
@@ -60,5 +62,5 @@ if __name__ == '__main__':
     filename = 'project3_dataset4'
     data = load_data('data/' + filename + '.txt', map_to_int=True if METHOD == "KNN" else False)
     start_time = time()
-    main(data=data, method=METHOD, P=P, K=K, T=T, M=M, N=N, scaling=False, bagging=False)
+    main(data=data, method=METHOD, P=P, K=K, T=T, M=M, N=N, scaling=False, bagging=False, RENDER_TREE=RENDER_TREE)
     print("--- %s seconds ---" % (time() - start_time))

@@ -13,12 +13,11 @@ __all__ = ['Boost']
 
 class Boost(object):
 
-    def __init__(self, N=5, sample_factor=0.5, **kwargs):
-        self.allmodels = [KNN, NaiveBayes, RandomForest, DecisionTree]
+    def __init__(self, N=5, sample_factor=0.9, **kwargs):
         self.models = list()
         self.alphas = list()
         self.selected_model = DecisionTree
-        self.models = map(lambda m: m(), self.models)
+        self.models = list()
         self.sample_factor = sample_factor
         self.N = N
 

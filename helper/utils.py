@@ -116,3 +116,7 @@ def most_common(lst):
 def normalize(lst, m=None):
     m = max(lst) if m is None else m
     return map(lambda l: l/m, lst), m
+
+
+def generalization_error(node):
+    return node['count']
