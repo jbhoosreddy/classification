@@ -19,9 +19,9 @@ def main(data, method, n, **kwargs):
     if method == "DT":
         model = DecisionTree()
     elif method == "RF":
-        model = RandomForest(kwargs['T'], kwargs['M'])
+        model = RandomForest(kwargs['T'], kwargs['M'], kwargs['bagging'])
     elif method == "KNN":
-        model = KNN(kwargs['K'])
+        model = KNN(kwargs['K'], kwargs['scaling'])
     elif method == "NB":
         model = NaiveBayes()
     partitions = list(split(data, n))
@@ -56,5 +56,5 @@ if __name__ == '__main__':
     filename = 'project3_dataset1'
     data = load_data('data/' + filename + '.txt', map_to_int=True if METHOD == "KNN" else False)
     start_time = time()
-    main(data=data, method=METHOD, n=N, K=K, T=T, M=M)
+    main(data=data, method=METHOD, n=N, K=K, T=T, M=M, scaling=False, bagging=False)
     print("--- %s seconds ---" % (time() - start_time))
