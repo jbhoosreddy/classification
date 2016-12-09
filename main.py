@@ -6,9 +6,10 @@ from KNearestNeighbour import *
 from NaiveBayes import *
 from RandomForest import *
 from DecisionTree import *
+from Boost import *
 range = xrange
 
-METHOD = "RF"
+METHOD = "KNN"
 N = 10
 K = 8
 M = 10

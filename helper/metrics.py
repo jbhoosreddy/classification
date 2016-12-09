@@ -27,9 +27,13 @@ class Performance(object):
         return (self.tp + self.tn) / self.total
 
     def precision(self):
+        if self.tp == self.fp == 0:
+            return 100
         return self.tp/(self.tp + self.fp)
 
     def recall(self):
+        if self.tp == self.fn == 0:
+            return 100
         return self.tp/(self.tp + self.fn)
 
     def f1(self):
