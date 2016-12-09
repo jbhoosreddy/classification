@@ -6,6 +6,7 @@ from collections import Counter
 
 __all__ = ['NaiveBayes']
 
+
 class NaiveBayes(object):
 
     def __init__(self):

@@ -1,10 +1,19 @@
 from __future__ import division
+from collections import Counter
 
 
 class Performance(object):
 
-    def __init__(self, actual, predicted):
-        pos, neg = '0', '1'
+    def __init__(self, actual, predicted, labels=('0', '1')):
+        prior = Counter(actual)
+        if len(prior) == 1:
+            pos = prior.keys()[0]
+            if pos == labels[0]:
+                neg = labels[1]
+            else:
+                neg = labels[0]
+        else:
+            pos, neg = map(lambda (k, v): k, prior.most_common(len(prior)))
         self.actual = actual
         self.predicted = predicted
         tp = tn = fp = fn = 0
@@ -41,8 +50,15 @@ class Performance(object):
         precision = self.precision()
         return 2 * recall * precision / (recall + precision)
 
+    def __render__(self, value):
+        if value >= 100:
+            return "Inf"
+        return str(round(value * 100, 2))
+
     def __str__(self):
-        return "Accuracy: " + str(round(self.accuracy()*100, 2)) + \
-               "\nPrecision: " + str(round(self.precision()*100, 2)) + \
-               "\nRecall: " + str(round(self.recall()*100, 2)) + \
-               "\nF1-Measure: " + str(round(self.f1()*100, 2))
+        return "Accuracy: " + self.__render__(self.accuracy()) + " %" + \
+               "\nPrecision: " + self.__render__(self.precision()) + " %" + \
+               "\nRecall: " + self.__render__(self.recall()) + " %" + \
+               "\nF1-Measure: " + self.__render__(self.f1()) + " %"
+
+

@@ -9,14 +9,15 @@ from DecisionTree import *
 from Boost import *
 range = xrange
 
-METHOD = "KNN"
+METHOD = "DT"
+P = 3
 N = 10
 K = 8
 M = 10
 T = 10
 
 
-def main(data, method, n, **kwargs):
+def main(data, method, P, **kwargs):
     if method == "DT":
         model = DecisionTree()
     elif method == "RF":
@@ -25,10 +26,12 @@ def main(data, method, n, **kwargs):
         model = KNN(kwargs['K'], kwargs['scaling'])
     elif method == "NB":
         model = NaiveBayes()
-    partitions = list(split(data, n))
+    elif method == "BST":
+        model = Boost(kwargs['T'], kwargs['M'], kwargs['bagging'], kwargs['K'], kwargs['scaling'])
+    partitions = list(split(data, P)) if P > 1 else [data]
 
     metrics = list()
-    for i in range(n):
+    for i in range(P):
 
         test = partitions[i]
         train = []
@@ -36,7 +39,7 @@ def main(data, method, n, **kwargs):
         for j in range(0, i):
             train += partitions[j]
 
-        for j in range(i+1, n):
+        for j in range(i+1, P):
             train += partitions[j]
 
         result = model.fit_transform(train, test)
@@ -47,15 +50,16 @@ def main(data, method, n, **kwargs):
         metrics.append(Performance(actual, predicted))
         print metrics[-1]
 
-    print '-----------------------------'
-    print "Accuracy:", round(mean(map(lambda m: m.accuracy(), metrics))*100, 2), "%"
-    print "Precision:", round(mean(map(lambda m: m.precision(), metrics))*100, 2), "%"
-    print "Recall:", round(mean(map(lambda m: m.recall(), metrics))*100, 2), "%"
-    print "F1-Measure:", round(mean(map(lambda m: m.f1(), metrics))*100, 2), "%"
+    if not P == 1:
+        print '-----------------------------'
+        print "Accuracy:", round(mean(filter(lambda v: v <= 1, map(lambda m: m.accuracy(), metrics)))*100, 2), "%"
+        print "Precision:", round(mean(filter(lambda v: v <= 1, map(lambda m: m.precision(), metrics)))*100, 2), "%"
+        print "Recall:", round(mean(filter(lambda v: v <= 1, map(lambda m: m.recall(), metrics)))*100, 2), "%"
+        print "F1-Measure:", round(mean(filter(lambda v: v <= 1, map(lambda m: m.f1(), metrics)))*100, 2), "%"
 
 if __name__ == '__main__':
-    filename = 'project3_dataset1'
+    filename = 'project3_dataset4'
     data = load_data('data/' + filename + '.txt', map_to_int=True if METHOD == "KNN" else False)
     start_time = time()
-    main(data=data, method=METHOD, n=N, K=K, T=T, M=M, scaling=False, bagging=False)
+    main(data=data, method=METHOD, P=P, K=K, T=T, M=M, N=N, scaling=False, bagging=False)
     print("--- %s seconds ---" % (time() - start_time))

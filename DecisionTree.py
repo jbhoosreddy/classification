@@ -2,8 +2,8 @@ from __future__ import division
 from helper.statistics import *
 from helper.constants import *
 from helper.utils import categorize
-from helper.collections import DecisionTreeNode
-from helper.collections import Tree
+from helper.structures import DecisionTreeNode
+from helper.structures import Tree
 from collections import Counter
 
 __all__ = ['DecisionTree']
@@ -47,7 +47,7 @@ class DecisionTree(object):
                 features[i] = dict()
                 values = set(X[i])
                 for value in values:
-                    node_filtered_train = filter(lambda t: value[0] <= t['attributes'][i] < value[1], filtered_train)
+                    node_filtered_train = filter(lambda t: value[0] <= t['attributes'][i] < value[1] if isinstance(value, tuple) else t['attributes'][i] == value, filtered_train)
                     features[i][value] = Counter(map(lambda tt: tt['class'], node_filtered_train))
                     features[i][value]['total'] = sum(features[i][value].values())
                     features[i][value]['data'] = node_filtered_train
@@ -91,7 +91,7 @@ class DecisionTree(object):
             gain_value = current_tree_node['gain']
             seen_attributes = current_tree_node['seen']
             selected_attribute = seen_attributes[-1]
-            filtered_train = filter(lambda t: new_range[0] <= t['attributes'][selected_attribute] < new_range[1], current_tree_node['data'])
+            filtered_train = filter(lambda t: new_range[0] <= t['attributes'][selected_attribute] < new_range[1] if isinstance(new_range, tuple) else t['attributes'][selected_attribute] == new_range, current_tree_node['data'])
         tree.finalize_tree()
         tree.clean(['data', 'gain', 'count', 'size'])
         # print tree
