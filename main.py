@@ -9,7 +9,7 @@ from DecisionTree import *
 from Boost import *
 range = xrange
 
-METHOD = "RF"
+METHOD = "BST"
 P = 10
 N = 10
 K = 8

@@ -54,13 +54,15 @@ class DecisionTree(object):
                     features[i][value]['entropy'] = features[i][value]['total'] / self.shape[0] * entropy([features[i][value][label]/features[i][value]['total'] for label in labels])
                 entropy_dict[i] = sum([c['entropy'] for c in features[i].values()])
                 gain_dict[i] = node_entropy - entropy_dict[i]
-                if gain_dict[i] > max_gain:
+                if gain_dict[i] >= max_gain:
                     max_gain = gain_dict[i]
                     selected_attribute = i
-            if new_range is None:
+            if new_range is None and infer_nature(X[selected_attribute]) == CATEGORICAL:
                 min_value = min(map(lambda x: x[0], set(X[selected_attribute])))
                 max_value = max(map(lambda x: x[1], set(X[selected_attribute])))
                 new_range = min_value, max_value
+            else:
+                new_range = None
             if entropy_value is None:
                 entropy_value = entropy_dict[selected_attribute]
                 gain_value = gain_dict[selected_attribute]
@@ -94,7 +96,7 @@ class DecisionTree(object):
             filtered_train = filter(lambda t: new_range[0] <= t['attributes'][selected_attribute] < new_range[1] if isinstance(new_range, tuple) else t['attributes'][selected_attribute] == new_range, current_tree_node['data'])
         tree.finalize_tree()
         tree.clean(['data', 'gain', 'count', 'size'])
-        # print tree
+        print tree
 
     def transform(self, test):
         tree = self.tree
