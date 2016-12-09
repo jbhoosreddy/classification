@@ -107,7 +107,7 @@ class DecisionTree(object):
             while True:
                 current_id = current_node['id']
                 val = x[current_id]
-                new_child = filter(lambda child: child['range'][0] <= val < child['range'][1],  current_node.children)
+                new_child = filter(lambda child: child['range'][0] <= val < child['range'][1] if isinstance(child['range'], tuple) else val == child['range'],  current_node.children)
                 if len(new_child) == 0:
                     break
                 else:

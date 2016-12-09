@@ -9,30 +9,29 @@ from DecisionTree import *
 from Boost import *
 range = xrange
 
-METHOD = "DT"
-P = 3
+METHOD = "RF"
+P = 10
 N = 10
 K = 8
-M = 10
-T = 10
+M = 2
+T = 5
 
 
 def main(data, method, P, **kwargs):
-    if method == "DT":
-        model = DecisionTree()
-    elif method == "RF":
-        model = RandomForest(kwargs['T'], kwargs['M'], kwargs['bagging'])
-    elif method == "KNN":
-        model = KNN(kwargs['K'], kwargs['scaling'])
-    elif method == "NB":
-        model = NaiveBayes()
-    elif method == "BST":
-        model = Boost(kwargs['T'], kwargs['M'], kwargs['bagging'], kwargs['K'], kwargs['scaling'])
     partitions = list(split(data, P)) if P > 1 else [data]
 
     metrics = list()
     for i in range(P):
-
+        if method == "DT":
+            model = DecisionTree()
+        elif method == "RF":
+            model = RandomForest(kwargs['T'], kwargs['M'], kwargs['bagging'])
+        elif method == "KNN":
+            model = KNN(kwargs['K'], kwargs['scaling'])
+        elif method == "NB":
+            model = NaiveBayes()
+        elif method == "BST":
+            model = Boost(kwargs['T'])
         test = partitions[i]
         train = []
 

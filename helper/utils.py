@@ -85,7 +85,7 @@ def is_type(type, s):
         return False
 
 
-def categorize(l, expansion_factor=1):
+def categorize(l, expansion_factor=1, min_threshold=0.01):
     if infer_nature(l) == CATEGORICAL:
         return l
     _min_ = min(l)
@@ -97,7 +97,10 @@ def categorize(l, expansion_factor=1):
             low = _min_
         else:
             low = round(_min_ + i * expansion_factor * _std_, 3)
-        high = round(_min_ + (i + 1) * expansion_factor * _std_, 3)
+        if _std_ == 0:
+            high = low + min_threshold
+        else:
+            high = round(_min_ + (i + 1) * expansion_factor * _std_, 3)
         interval = low, high
         l = map(lambda e: interval if low <= e < high else e, l)
         i += 1
