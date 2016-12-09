@@ -8,7 +8,7 @@ from RandomForest import *
 from DecisionTree import *
 range = xrange
 
-METHOD = "DT"
+METHOD = "RF"
 N = 10
 K = 8
 M = 10

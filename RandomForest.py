@@ -1,6 +1,6 @@
 from DecisionTree import *
 from helper.utils import most_common
-from random import sample
+from random import sample, choice
 from copy import deepcopy
 
 __all__ = ['RandomForest']
@@ -8,17 +8,21 @@ __all__ = ['RandomForest']
 
 class RandomForest(object):
 
-    def __init__(self, T=10, M=30):
+    def __init__(self, T=10, M=30, bagging=False):
         self.t = T
         self.m = M
+        self.bagging = bagging
         self.forest = map(lambda i: DecisionTree(), range(T))
         self.shape = None
         self.selected_attributes = list()
 
     def __mapper__(self, data, i):
         data = deepcopy(data)
+        length = len(data)
         for t in data:
             t['attributes'] = map(t['attributes'].__getitem__, self.selected_attributes[i])
+        if self.bagging:
+            return [choice(data) for _ in range(length)]
         return data
 
     def fit(self, train):

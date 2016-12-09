@@ -94,7 +94,7 @@ class DecisionTree(object):
             filtered_train = filter(lambda t: new_range[0] <= t['attributes'][selected_attribute] < new_range[1], current_tree_node['data'])
         tree.finalize_tree()
         tree.clean(['data', 'gain', 'count', 'size'])
-        print tree
+        # print tree
 
     def transform(self, test):
         tree = self.tree

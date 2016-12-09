@@ -7,16 +7,19 @@ __all__ = ['KNN']
 
 class KNN(object):
 
-    def __init__(self, K):
+    def __init__(self, K, scaling=True):
         self.model = None
         self.K = K
         self.normalization_factor = None
+        self.scaling = scaling
 
     def __mapper__(self, data):
+        if not self.scaling:
+            return data
         X = map(lambda d: d['attributes'], data)
         if self.normalization_factor is None:
             X = map(lambda i: normalize(map(lambda x: x[i], X)), range(len(X[0])))
-            self.normalization_factor = map(lambda (a, b): b,  X)
+            self.normalization_factor = map(lambda (a, b): b, X)
         else:
             X = map(lambda i: normalize(map(lambda x: x[i], X), self.normalization_factor[i]), range(len(X[0])))
         X = map(lambda (a, b): a,  X)
